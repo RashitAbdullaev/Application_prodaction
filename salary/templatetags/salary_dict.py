@@ -104,7 +104,7 @@ def payroll(dictionary, worker, method):
         return dictionary[worker][3][10][method] if len(dictionary[worker][3])>10 else ''
 
     if method == 'qwe':
-        return str(dictionary[worker][3][11][method])
+        return dictionary[worker][3][11][method]
 
     if method == 'fines':
         summa = Fine.objects.aggregate(sum=Sum('cost', filter=Q(worker=worker,
