@@ -1,0 +1,97 @@
+{% extends 'applications/layout/basic.html' %}
+
+{% block title %}
+    Выбор приложения
+{% endblock %}
+
+{% block panel %} {% endblock %}
+
+{% block body %}
+    <div class="container-fluid d-flex justify-content-center mt-2 ">
+        <div class="row w-50 d-flex align-content-center">
+
+            <div class="card w-100 mt-5">
+                <div class="card-body row">
+
+
+                    {% if group.name == 'Администрация' %}
+                    <div class="col-12 mb-3">
+                        <a href='/admin' class="btn btn-primary w-100" style="background: #580e9d;">АДМИН ПАНЕЛЬ</a>
+                    </div>
+                    {% endif %}
+
+
+                    {% if group.name != 'Бригадира' %}
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'applications:apps' %}" class="btn btn-secondary w-100" style="background: #580e9d;">ЗАЯВКИ</a>
+                    </div>
+                    {% endif %}
+
+                    {% if group.name == 'Начальники производства' or group.name == 'Администрация' or group.name == 'Бухгалтера' %}
+                        <div class="col-6 mb-3">
+                            <a href="/salary/payroll/{{current_date}}"  class="btn btn-secondary w-100" style="background: #580e9d;">РАСЧЕТ</a>
+                        </div>
+                    {% endif %}
+
+                    {% if group.name == 'Бригадира' %}
+                        <div class="col-6 mb-3">
+                            <a href="/salary/timesheet/"  class="btn btn-secondary w-100" style="background: #580e9d;">ТАБЕЛЬ</a>
+                        </div>
+                    {% endif %}
+                    {% if group.name == 'OTK' or group.name == 'Администрация'%}
+                        <div class="col-6 mb-3">
+                            <a href="/salary/fine/"  class="btn btn-secondary w-100" style="background: #580e9d;">ШТРАФЫ</a>
+                        </div>
+                    {% endif %}
+                    {% if group.name == 'Начальники производства' or group.name == 'Администрация'%}
+                        <div class="col-6 mb-3">
+                            <a href="/salary/employees/"  class="btn btn-secondary w-100" style="background: #580e9d;">Сотрудники</a>
+                        </div>
+                    {% endif %}
+
+                    {% if group.name == 'Начальники производства' or group.name == 'Администрация'%}
+                        <div class="col-6 mb-3">
+                            <a href="/salary/positions/"  class="btn btn-secondary w-100" style="background: #580e9d;">Должности</a>
+                        </div>
+                    {% endif %}
+
+                    {% if group.name == 'Начальники производства' or group.name == 'Администрация'%}
+                        <div class="col-6 mb-3">
+                            <a href="/salary/departments/"  class="btn btn-secondary w-100" style="background: #580e9d;">Участки</a>
+                        </div>
+                    {% endif %}
+
+
+                    {% if  group.name == 'Администрация'%}
+
+                        <div class="col-12 mb-3">
+                            <input  class="form-control p-0 text-center border-0 rounded-0 fines" id="change_password" style="border-radius: 5px !important;
+    margin-bottom: 1px;" type="text" placeholder="Введите пароль">
+                            <a onclick="change_password()"  class="btn btn-secondary w-100" style="background: rgb(201 38 60);">Сменить всем пороли</a>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+        <script>
+            function change_password(){
+                text = document.getElementById('change_password').value
+
+                const requestOptions = {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                text_password: text,
+
+            }),};
+            fetch('/salary/change-password-for-all/', requestOptions);
+            window.location.href = '/';
+            }
+
+        </script>
+{% endblock %}

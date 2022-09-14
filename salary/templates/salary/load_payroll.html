@@ -1,0 +1,1030 @@
+{% extends 'salary/layout/basic.html' %}
+{% load static %}
+{% load salary_dict %}
+{% block title %} Расчетный лист {% endblock %}
+
+{% block content %}
+    <div class="list-group_ed rounded-0 p-0" id="list-group">
+        <button type="button" class="list-group-item list-post list-group-item-action p-1" value="absenteeism">
+            Красный
+        </button>
+        <button type="button" class="list-group-item list-post list-group-item-action p-1" value="pass">Желтый
+        </button>
+        <button type="button" class="list-group-item list-post list-group-item-action p-1" value="weekend">Синий
+        </button>
+        <button type="button" class="list-group-item list-post list-group-item-action p-1" value="holiday">Фиолетовый
+        </button>
+        <button type="button" class="list-group-item list-post list-group-item-action p-1" value="none">Убрать
+        </button>
+    </div>
+    <p class="text-center m-0">
+        <span class="text-danger m-0">Внимание</span>, участки незаполнившие табель:
+        {% if errors.count > 0 %}
+            {% for error_dep in errors %} | {{ error_dep.name }} {% endfor %}.
+        {% else %}
+            нет ни одного подобного участка.
+        {% endif %}
+    </p>
+    <div class="col-10">
+        <div style="justify-content: center;
+    display: flex;">
+            <select style="" id="select_year" class="select-group"
+                    onChange="choose_timesheet()">
+
+                <option value="{{ request_date.year }}">{{ request_date.year }}</option>
+                <option value="2022">2022</option>
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+                <option value="2030">2030</option>
+                <option value="2031">2031</option>
+                <option value="2032">2032</option>
+                <option value="2033">2033</option>
+            </select>
+            <select id="select_month" class="select-group"
+                    onChange="choose_timesheet()">
+                <option value="{{ request_date.month }}">{{ request_date.month }}</option>
+
+                <option value="01">01</option>
+                <option value="02">02</option>
+                <option value="03">03</option>
+                <option value="04">04</option>
+                <option value="05">05</option>
+                <option value="06">06</option>
+                <option value="07">07</option>
+                <option value="08">08</option>
+                <option value="09">09</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+
+            </select>
+        </div>
+        <style>
+            select {
+                border-radius: 5px;
+                color: white;
+                background: #1266f1;
+                padding: 5px;
+                border: 1px solid #1266f1;
+                margin-right: 2px;
+            }
+
+            .list-group_ed {
+                width: fit-content !important;
+                background: #262626c9 !important;
+                display: none;
+                position: absolute;
+                z-index: 1000;
+            }
+
+            .list-group_ed > button {
+                background: #262626c9;
+                color: white;
+                font-size: 12px;
+            }
+        </style>
+        <div align="center" style="margin-top: 15px" class="button_color">
+            <button type="button" class="btn btn-primary btn-sm" data-f="#1700ffb3">Синий</button>
+            <button type="button" class="btn btn-warning btn-sm" data-f="#ffff00b3">Желтый</button>
+            <button type="button" class="btn btn-danger btn-sm" data-f="#ff0004b3">Красный</button>
+            <button type="button" class="btn btn-danger btn-sm" data-f="#800080" style="background:#800080">Фиолетовый</button>
+            <button type="button" class="btn btn-light btn-sm" data-f="#fff">Белый</button>
+        </div>
+        <table class="table table-sm table-hover" style="width: 100% !important;">
+            <thead>
+            <tr class="text-center">
+                <th></th>
+                <th>ФИО</th>
+                <th>Должность</th>
+                <th>Основа</th>
+                <!--      <th >Разряд</th>   -->
+                <th>К1</th>
+                <th>Часы</th>
+                <th>Пр бриг</th>
+                <th>Пр нач. п.</th>
+                <th>ЗП</th>
+                <th>Авн</th>
+                {% if group.name == 'Бухгалтера' or group.name == 'Администрация' or group.name == 'Начальники производства' %}
+                    <th class="for_admin">Крт</th>
+                    <th class="for_admin">Стлв</th>
+                    <th class="for_admin">Прочее</th>
+                {% endif %}
+                <th>Штраф</th>
+                <th>Вдч</th>
+                {% if group.name == 'Бухгалтера' or group.name == 'Администрация' or group.name == 'Начальники производства' %}
+                    <th class="for_admin">Сорт</th>
+                {% endif %}
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for payroll in payrolls %}
+                {% with payroll|convert as dates %}
+                    <tr class="tr_one">
+
+                        <td colspan="18" class="text-center text-uppercase fs-5"
+                            style="background: #703baa; color: white;">
+                            {{ payroll.department }} {{ payroll.department.manufacture.name }}
+                        </td>
+
+                    </tr>
+                    {% for data in dates %}
+                        <tr class="selector all_tr {% get_method dates data 'qwe' %}"
+                            style="background:{% get_method dates data 'qwe' %}"
+                            id="{% get_method dates data 'Worker' %}" time_sh="{{ payroll.time_sheet.pk }}">
+                            <td class="{% get_method dates data 'norm_clocks' %}">{{ forloop.counter }}</td>
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    <input class="form-control p-0 text-center border-0 rounded-0 worker"
+                                           type="text" readonly value="{% get_method dates data 'worker' %}">
+                                </div>
+                            </td>
+                            <td>
+
+                                <select style="padding: 1px; width: auto; padding-right: 30px;"
+                                        department="{{ payroll.department.pk }}"
+                                        worker="{% get_method dates data 'Worker' %}"
+                                        class="form-select select_position" aria-label="Default select example">
+                                    <option selected
+                                            value="{% get_method dates data 'position' %}">{% get_method dates data 'position' %}</option>
+                                    {% for position in positions %}
+                                        <option value="{{ position.pk }}">{{ position.name }}</option>
+                                    {% endfor %}
+                                </select>
+
+                                <!--                        <div class="input-group input-group-sm m-0 mb-0 ">-->
+                                <!--                            <input  class="form-control p-0 text-center border-0 rounded-0 position"-->
+                                <!--                                   type="text" readonly value="{% get_method dates data 'position' %}">-->
+                                <!--                        </div>-->
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    {% if payroll.status == 'close_salary' %}
+
+                                        <input class="form-control p-0 text-center border-0 rounded-0 salary"
+                                               type="float" readonly value="{% get_method dates data 'fixed_salary' %}">
+                                    {% else %}
+                                        <input class="form-control p-0 text-center border-0 rounded-0 salary"
+                                               type="float" readonly value="{% get_method dates data 'salary' %}">
+                                    {% endif %}
+
+                                </div>
+                            </td>
+                            <!--                    <td>-->
+                            <!--                        <div class="input-group input-group-sm m-0 mb-0 ">-->
+                            <!--                            <input  class="form-control p-0 text-center border-0 rounded-0 degree"-->
+                            <!--                                   type="text" readonly value="{% get_method dates data 'degree' %}">-->
+                            <!--                        </div>-->
+                            <!--                    </td>-->
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    {% if  payroll.status == 'close' %}
+                                        <input disabled pay_roll="{{ payroll.status }}"
+                                               time_sh="{{ payroll.time_sheet.pk }}" name="coefficient"
+                                               worker="{% get_method dates data 'Worker' %}"
+                                               class="form-control p-0 text-center border-0 rounded-0 coefficient"
+                                               type="text" value="{% get_method dates data 'coefficient' %}">
+                                    {% else %}
+                                        <input pay_roll="{{ payroll.status }}" time_sh="{{ payroll.time_sheet.pk }}"
+                                               name="coefficient" worker="{% get_method dates data 'Worker' %}"
+                                               class="form-control p-0 text-center border-0 rounded-0 coefficient"
+                                               type="text" value="{% get_method dates data 'coefficient' %}">
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    <input class="form-control p-0 text-center border-0 rounded-0 sumclocks"
+                                           type="text" readonly value="{% get_method dates data 'sumclocks' %}">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    {% if  payroll.status == 'close' %}
+                                        <input disabled pay_roll="{{ payroll.status }}"
+                                               time_sh="{{ payroll.time_sheet.pk }}" name="extra_from_foreman"
+                                               worker="{% get_method dates data 'Worker' %}"
+                                               class="form-control p-0 text-center border-0 rounded-0 extra_from_foreman"
+                                               type="float" value="{% get_method dates data 'extra_from_foreman' %}">
+                                    {% else %}
+                                        <input pay_roll="{{ payroll.status }}" time_sh="{{ payroll.time_sheet.pk }}"
+                                               name="extra_from_foreman" worker="{% get_method dates data 'Worker' %}"
+                                               class="form-control p-0 text-center border-0 rounded-0 extra_from_foreman"
+                                               type="float" value="{% get_method dates data 'extra_from_foreman' %}">
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    {% if  payroll.status == 'close' %}
+                                        <input disabled pay_roll="{{ payroll.status }}"
+                                               time_sh="{{ payroll.time_sheet.pk }}" name="extra_from_director"
+                                               worker="{% get_method dates data 'Worker' %}"
+                                               class="form-control p-0 text-center border-0 rounded-0 extra_from_director"
+                                               type="float" value="{% get_method dates data 'extra_from_director' %}">
+                                    {% else %}
+                                        <input pay_roll="{{ payroll.status }}" time_sh="{{ payroll.time_sheet.pk }}"
+                                               name="extra_from_director" worker="{% get_method dates data 'Worker' %}"
+                                               class="form-control p-0 text-center border-0 rounded-0 extra_from_director"
+                                               type="float" value="{% get_method dates data 'extra_from_director' %}">
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+
+                                    <input class="form-control p-0 text-center border-0 rounded-0 wage"
+                                           type="text" readonly value="0.00">
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    {% if payroll.status == 'avans' or payroll.status == 'close' %}
+                                        <input disabled
+                                               class="form-control p-0 text-center border-0 rounded-0 prepayment"
+                                               type="float" value="{% get_method dates data 'prepayment' %}">
+                                    {% else %}
+                                        <input class="form-control p-0 text-center border-0 rounded-0 prepayment"
+                                               pay_roll="{{ payroll.pk }}" time_sh="{{ payroll.time_sheet.pk }}"
+                                               name="prepayment" worker="{% get_method dates data 'Worker' %}"
+                                               type="float" value="{% get_method dates data 'prepayment' %}">
+                                    {% endif %}
+                                </div>
+                            </td>
+
+
+                            <td>
+
+
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    <input pay_roll="{{ payroll.pk }}" time_sh="{{ payroll.time_sheet.pk }}" name="card"
+                                           worker="{% get_method dates data 'Worker' %}"
+                                           class="form-control p-0 text-center border-0 rounded-0 card"
+                                           type="float" value="{% get_method dates data 'card' %}">
+                                </div>
+                            </td>
+
+                            <td>
+
+
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    <input pay_roll="{{ payroll.status }}" time_sh="{{ payroll.time_sheet.pk }}"
+                                           name="breakfast"
+                                           worker="{% get_method dates data 'Worker' %}"
+                                           class="form-control p-0 text-center border-0 rounded-0 breakfast"
+                                           type="float" value="{% get_method dates data 'breakfast' %}">
+                                </div>
+                            </td>
+
+                            <td>
+
+
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    <input pay_roll="{{ payroll.status }}" time_sh="{{ payroll.time_sheet.pk }}"
+                                           name="other" worker="{% get_method dates data 'Worker' %}"
+                                           class="form-control p-0 text-center border-0 rounded-0 other"
+                                           type="float" value="{% get_method dates data 'other' %}">
+                                </div>
+                            </td>
+
+
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    <input readonly class="form-control p-0 text-center border-0 rounded-0 fines"
+                                           type="float" value="{% get_method dates data 'fines' %}">
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    <input readonly class="form-control p-0 text-center border-0 rounded-0 result"
+                                           type="float" value="0.00">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm m-0 mb-0 ">
+                                    <input pay_roll="{{ payroll.status }}" time_sh="{{ payroll.time_sheet.pk }}"
+                                           name="sort" worker="{% get_method dates data 'Worker' %}"
+                                           class="form-control p-0 text-center border-0 rounded-0 sort"
+                                           type="text" value="{% get_method dates data 'sort' %}">
+                                </div>
+                            </td>
+                            {% if forloop.counter == 1 %}
+                                <td rowspan=3 style="vertical-align: middle;"><a blank="true"
+                                                                                 href="{% url 'salary:load_time_sheet_by_date' payroll.department.pk payroll.time_sheet.dataSheet %}"
+                                                                                 style="margin-bottom: 35%;"
+                                                                                 class="btn btn-success"><span>Табель</span></a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                {% endwith %}
+            {% endfor %}
+
+            {% if payrolls.count > 0 %}
+                {% if group.name == 'Бухгалтера' %}
+                    <tr id="result_accounting">
+                        <td style="text-align: center;" colspan="3">Итого:</td>
+                        <td style="text-align: center;">0.00</td>
+                        <td colspan="2"></td>
+                        <td style="text-align: center;">0.00</td>
+                        <td style="text-align: center;">0.00</td>
+                        <td style="text-align: center;">0.00</td>
+                        <td style="text-align: center;">0.00</td>
+                        <td style="text-align: center;">0.00</td>
+                        <td style="text-align: center;">0.00</td>
+                        <td style="text-align: center;">0.00</td>
+                        <td style="text-align: center;">0.00</td>
+                        <td style="text-align: center;">0.00</td>
+                        <td colspan="2"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="17"><a
+                                href="{% url 'salary:update-status-pay-roll' user.pk 'close' payrolls.first.time_sheet.dataSheet|date:'Y-m-d' %}"
+                                style="width: 100%;" class="btn btn-secondary">Принять рассчетный лист</a></td>
+                    </tr>
+                {% endif %}
+                {% if group.name == 'Начальники производства' or group.name == 'Администрация' %}
+                    {% if payrolls.first.status != 'avans' and  payrolls.first.status != 'close_salary' %}
+                        <tr>
+                            <td colspan="17"><a
+                                    href="{% url 'salary:update-status-pay-roll' user.pk 'avans' payrolls.first.time_sheet.dataSheet|date:'Y-m-d' %}"
+                                    style="width: 100%;" class="btn btn-secondary">Закрыть Аванс</a></td>
+                        </tr>
+                    {% endif %}
+                    {% if group.name == 'Администрация' or group.name == 'Начальники производства' %}
+                        <tr id="result_accounting">
+                            <td style="text-align: center;" colspan="3">Итого:</td>
+                            <td style="text-align: center;">0.00</td>
+                            <td colspan="2"></td>
+                            <td style="text-align: center;">0.00</td>
+                            <td style="text-align: center;">0.00</td>
+                            <td style="text-align: center;">0.00</td>
+                            <td style="text-align: center;">0.00</td>
+                            <td style="text-align: center;">0.00</td>
+                            <td style="text-align: center;">0.00</td>
+                            <td style="text-align: center;">0.00</td>
+                            <td style="text-align: center;">0.00</td>
+                            <td style="text-align: center;">0.00</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    {% endif %}
+                    {% if payrolls.first.status == 'avans' %}
+                        <tr>
+                            <td colspan="17"><a
+                                    href="{% url 'salary:update-status-pay-roll' user.pk 'close_salary' payrolls.first.time_sheet.dataSheet|date:'Y-m-d' %}"
+                                    style="width: 100%;" class="btn btn-secondary">Отправить</a></td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+
+            </tbody>
+        </table>
+    </div>
+
+    <form method="post" style="display: none !important;">
+        {% csrf_token %}
+        <input type="text" name="timesheet">
+        <input type="text" name="worker">
+        <input type="text" name="status">
+        <input type="text" name="date">
+        <button type="submit" class="click_post"></button>
+
+    </form>
+
+    {% if payrolls.first.status == 'close_salary' and group.name != 'Бухгалтера' and group.name != 'Администрация' %}
+        <script>
+            var all_inputs = document.getElementsByTagName('input');
+            for (var i = 0; i < all_inputs.length; i++) {
+                all_inputs[i].setAttribute('readonly', 'readonly');
+            }
+        </script>
+    {% endif %}
+    <div class="col-2" style="padding-right: 0px;">
+        <div class="row" style="display: flex;">
+            <div class="col-12 " style="display: flex; align-items: center;">
+                <a href="{% url 'salary:positions' %}" style="padding: 10px; font-size: 10px;"
+                   class="btn btn-secondary btn-sm">Должности</a>
+                <a onclick="get_file()" style="padding: 10px; margin-left: 2px; width: inherit; font-size: 10px;"
+                   class="btn btn-primary btn-sm ">EXCEL</a>
+
+            </div>
+
+            <div class="col-12">
+                Норма часов работников: <input type="text" id="full_time_worker"
+                                               name="{{ coefficient_worker.pk }}"
+                                               class=" full_time  p-0 text-center border-0 rounded-0 fines"
+                                               value="{{ coefficient_worker.count }}">
+                Норма часов охранников: <input type="text" id="full_time_guard"
+                                               name="{{ coefficient_guard.pk }}"
+                                               class="full_time  p-0 text-center border-0 rounded-0 fines"
+                                               value="{{ coefficient_guard.count }}">
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+
+    <style>
+        div.row {
+            width: 100% !important;
+            justify-content: flex-start !important;
+        }
+
+        .hide {
+            opacity: 1;
+            animation-name: a1;
+            animation-duration: 2s;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes a1 {
+            to {
+                opacity: 0;
+                min-height: 0;
+                min-width: 0;
+                padding: 0;
+                margin: 0;
+                border: 0;
+            }
+        }
+    </style>
+
+    </div>
+
+    <style>
+        th {
+            font-size: 12px;
+            font-weight: bold !important;
+            padding: 4px 0px !important;
+            text-transform: uppercase !important;
+        }
+
+        td {
+            padding: 1px 2px !important;
+        }
+
+        input:focus {
+            border: 1px solid green !important;
+        }
+
+        .input-group {
+            width: fit-content;
+        }
+
+        .form-control {
+            background: white !important;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            const filter_box = document.querySelectorAll(".selector")
+            document.querySelector('.button_color').addEventListener('click', event => {
+                tabel = document.getElementsByClassName('tabel')
+                for (let i = 0; i < tabel.length; i++) {
+                    tabel[i].style.display = 'none'
+                }
+
+                let filter_class = event.target.dataset['f'];
+                filter_box.forEach(elem => {
+                    elem.classList.add('all_tr');
+                    elem.classList.remove('hide');
+                    elem.classList.add('selector');
+                    if (!elem.classList.contains(filter_class)) {
+                        elem.classList.add('hide');
+                        elem.classList.remove('selector');
+                        elem.classList.remove('all_tr');
+                    }
+
+                })
+
+                salary_num = 0
+                extra_from_foreman_num = 0
+                extra_from_director_num = 0
+                prepayment_num = Number()
+                cart_num = 0
+                kitchen_num = 0
+                other_num = 0
+                fines_num = 0
+                avans_num = 0
+                last_one = 0
+
+                function analysis_salary(parent) {
+                    salary = Number(parent.children[3].children[0].children[0].value);
+                    coefficient = Number(parent.children[4].children[0].children[0].value);
+                    sumclocks = Number(parent.children[5].children[0].children[0].value);
+                    extra_from_foreman = Number(parent.children[6].children[0].children[0].value);
+                    extra_from_director = Number(parent.children[7].children[0].children[0].value);
+                    prepayment = Number(parent.children[8].children[0].children[0].value);
+                    cart = Number(parent.children[10].children[0].children[0].value);
+                    kitchen = Number(parent.children[11].children[0].children[0].value);
+                    other = Number(parent.children[12].children[0].children[0].value);
+                    fines = Number(parent.children[13].children[0].children[0].value);
+                    avans = Number(parent.children[9].children[0].children[0].value);
+
+                    if (parent.children[2].children[0].children[0].value == 'Охранник') {
+                        full_time = Number(document.getElementById('full_time_guard').value);
+                    } else {
+                        full_time = Number(document.getElementById('full_time_worker').value);
+                        if (sumclocks > full_time) {
+                            sumclocks = full_time
+                        }
+
+                    }
+                    parent.children[8].children[0].children[0].value =
+                        Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(2);
+                    parent.children[14].children[0].children[0].value =
+                        Number(parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines)).toFixed(2);
+
+
+                    sss = Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(2)
+                    ssr = Number(sss)
+                    ll = Number(parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines)).toFixed(2)
+                    llInt = Number(ll)
+                    salary_num = salary_num + salary
+
+                    extra_from_foreman_num = extra_from_foreman_num + extra_from_foreman
+                    extra_from_director_num = extra_from_director_num + extra_from_director
+                    prepayment_num = prepayment_num + ssr
+                    cart_num = cart_num + cart
+                    kitchen_num = kitchen_num + kitchen
+                    other_num = other_num + other
+                    fines_num = fines_num + fines
+                    avans_num = avans_num + avans
+                    last_one = last_one + llInt
+
+
+                    get_result_accountin = document.querySelector('#result_accounting');
+
+                    get_result_accountin.children[1].innerHTML = salary_num.toFixed(2)
+                    get_result_accountin.children[3].innerHTML = extra_from_foreman_num.toFixed(2)
+                    get_result_accountin.children[4].innerHTML = extra_from_director_num.toFixed(2)
+
+
+                    get_result_accountin.children[5].innerHTML = prepayment_num.toFixed(2)
+
+                    get_result_accountin.children[6].innerHTML = avans_num.toFixed(2)
+                    get_result_accountin.children[7].innerHTML = cart_num.toFixed(2)
+                    get_result_accountin.children[8].innerHTML = kitchen_num.toFixed(2)
+                    get_result_accountin.children[9].innerHTML = other_num.toFixed(2)
+                    get_result_accountin.children[10].innerHTML = fines_num.toFixed(2)
+                    get_result_accountin.children[11].innerHTML = last_one.toFixed(2)
+
+                }
+
+                var salary_num_ed = 0
+                var extra_from_foreman_num_ed = 0
+                var extra_from_director_num_ed = 0
+                var prepayment_num_ed = Number()
+                var cart_num_ed = 0
+                var kitchen_num_ed = 0
+                var other_num_ed = 0
+                var fines_num_ed = 0
+                var avans_num_ed = 0
+                var last_one_ed = 0
+
+                all_selectors = document.getElementsByClassName('selector');
+                for (var i = 0; i < all_selectors.length; i++) {
+                    analysis_salary(all_selectors[i]);
+                }
+
+                function* analysis_salary_ed_click() {
+                    all_tr = document.getElementsByClassName('all_tr')
+                    for (var i = 0; i < all_tr.length; i++) {
+                        if (all_tr[i].children.length > 13) {
+                            salary_ed = Number(all_tr[i].children[3].children[0].children[0].value);
+                            coefficient_ed = Number(all_tr[i].children[4].children[0].children[0].value);
+                            sumclocks_ed = Number(all_tr[i].children[5].children[0].children[0].value);
+                            extra_from_foreman_ed = Number(all_tr[i].children[6].children[0].children[0].value);
+                            extra_from_director_ed = Number(all_tr[i].children[7].children[0].children[0].value);
+                            prepayment_ed = Number(all_tr[i].children[8].children[0].children[0].value);
+                            cart_ed = Number(all_tr[i].children[10].children[0].children[0].value);
+                            kitchen_ed = Number(all_tr[i].children[11].children[0].children[0].value);
+                            other_ed = Number(all_tr[i].children[12].children[0].children[0].value);
+                            fines_ed = Number(all_tr[i].children[13].children[0].children[0].value);
+                            avans_ed = Number(all_tr[i].children[9].children[0].children[0].value);
+
+                            all_tr[i].children[8].children[0].children[0].value =
+                                Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(2);
+                            all_tr[i].children[14].children[0].children[0].value =
+                                Number(all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed)).toFixed(2);
+
+                            sss_ed = Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(2)
+                            ssr_ed = Number(sss_ed)
+                            ll_ed = Number(all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed)).toFixed(2)
+                            llInt_ed = Number(ll_ed)
+
+                            salary_num_ed = salary_num_ed + salary_ed
+                            extra_from_foreman_num_ed = extra_from_foreman_num_ed + extra_from_foreman_ed
+                            extra_from_director_num_ed = extra_from_director_num_ed + extra_from_director_ed
+                            prepayment_num_ed = prepayment_num_ed + ssr_ed
+                            cart_num_ed = cart_num_ed + cart_ed
+                            kitchen_num_ed = kitchen_num_ed + kitchen_ed
+                            other_num_ed = other_num_ed + other_ed
+                            fines_num_ed = fines_num_ed + fines_ed
+                            avans_num_ed = avans_num_ed + avans_ed
+                            last_one_ed = last_one_ed + llInt_ed
+
+
+                        } else if (all_tr[i].children.length == 13) {
+                            yield salary_num_ed
+                            yield extra_from_foreman_num_ed
+                            yield extra_from_director_num_ed
+                            yield prepayment_num_ed
+                            yield avans_num_ed
+                            yield last_one_ed
+                            last_one_ed = 0
+                            prepayment_num_ed = 0
+                            extra_from_director_num_ed = 0
+                            extra_from_foreman_num_ed = 0
+                            avans_num_ed = 0
+                            salary_num_ed = 0
+                        }
+                    }
+                }
+
+                const click = analysis_salary_ed_click()
+                get_result_accountin_ed_click = document.getElementsByClassName('result_accounting');
+                for (let i = 0; i < get_result_accountin_ed.length; i++) {
+                    get_result_accountin_ed_click[i].children[1].innerHTML = click.next().value.toFixed(2)
+                    get_result_accountin_ed_click[i].children[3].innerHTML = click.next().value.toFixed(2)
+                    get_result_accountin_ed_click[i].children[4].innerHTML = click.next().value.toFixed(2)
+
+                    get_result_accountin_ed_click[i].children[5].innerHTML = click.next().value.toFixed(2)
+
+                    get_result_accountin_ed_click[i].children[6].innerHTML = click.next().value.toFixed(2)
+                    get_result_accountin_ed_click[i].children[7].innerHTML = cart_num_ed.toFixed(2)
+                    get_result_accountin_ed_click[i].children[8].innerHTML = kitchen_num_ed.toFixed(2)
+                    get_result_accountin_ed_click[i].children[9].innerHTML = other_num_ed.toFixed(2)
+                    get_result_accountin_ed_click[i].children[10].innerHTML = fines_num_ed.toFixed(2)
+                    get_result_accountin_ed_click[i].children[11].innerHTML = click.next().value.toFixed(2)
+                }
+            });
+
+            $('body').click(function (event) {
+                el = document.getElementById('list-group');
+                el.style.display = 'none';
+            });
+
+            function show_hide() {
+                el = document.getElementById('list-group');
+                el.style.display = 'block';
+                el.style.top = event.clientY + 'px';
+                el.style.left = event.clientX + 'px';
+            }
+
+            function set_attr(timesheet, worker) {
+                document.querySelector('input[name=timesheet]').setAttribute('value', timesheet);
+                document.querySelector('input[name=worker]').setAttribute('value', worker);
+                date_times = document.getElementById('select_year').value + '-' + document.getElementById('select_month').value + '-' + '01';
+                document.querySelector('input[name=date]').setAttribute('value', date_times);
+            }
+
+            $('button.list-post').click(function (e) {
+                document.querySelector('input[name=status]').setAttribute('value', this.value);
+                $(".click_post").click();
+            })
+
+            $('tr').contextmenu(function (event) {
+                set_attr(this.getAttribute('time_sh'), this.id);
+                show_hide();
+                return false;
+            });
+
+            $('tr').dblclick(function (event) {
+                set_attr(this.getAttribute('time_sh'), this.id);
+                show_hide();
+            });
+            var salary_num = 0
+            var extra_from_foreman_num = 0
+            var extra_from_director_num = 0
+            var prepayment_num = Number()
+            var cart_num = 0
+            var kitchen_num = 0
+            var other_num = 0
+            var fines_num = 0
+            var avans_num = 0
+            var last_one = 0
+
+            function analysis_salary(parent) {
+                salary = Number(parent.children[3].children[0].children[0].value);
+                coefficient = Number(parent.children[4].children[0].children[0].value);
+                sumclocks = Number(parent.children[5].children[0].children[0].value);
+                extra_from_foreman = Number(parent.children[6].children[0].children[0].value);
+                extra_from_director = Number(parent.children[7].children[0].children[0].value);
+                prepayment = Number(parent.children[8].children[0].children[0].value);
+                cart = Number(parent.children[10].children[0].children[0].value);
+                kitchen = Number(parent.children[11].children[0].children[0].value);
+                other = Number(parent.children[12].children[0].children[0].value);
+                fines = Number(parent.children[13].children[0].children[0].value);
+                avans = Number(parent.children[9].children[0].children[0].value);
+
+                if (parent.children[2].children[0].children[0].value == 'Охранник') {
+                    full_time = Number(document.getElementById('full_time_guard').value);
+                } else {
+                    full_time = Number(document.getElementById('full_time_worker').value);
+                    if (sumclocks > full_time) {
+                        sumclocks = full_time
+                    }
+
+                }
+                parent.children[8].children[0].children[0].value =
+                    Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(2);
+                parent.children[14].children[0].children[0].value =
+                    Number(parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines)).toFixed(2);
+
+
+                sss = Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(2)
+                ssr = Number(sss)
+                ll = Number(parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines)).toFixed(2)
+                llInt = Number(ll)
+                salary_num = salary_num + salary
+
+                extra_from_foreman_num = extra_from_foreman_num + extra_from_foreman
+                extra_from_director_num = extra_from_director_num + extra_from_director
+                prepayment_num = prepayment_num + ssr
+                cart_num = cart_num + cart
+                kitchen_num = kitchen_num + kitchen
+                other_num = other_num + other
+                fines_num = fines_num + fines
+                avans_num = avans_num + avans
+                last_one = last_one + llInt
+
+
+                get_result_accountin = document.querySelector('#result_accounting');
+
+                get_result_accountin.children[1].innerHTML = salary_num.toFixed(2)
+                get_result_accountin.children[3].innerHTML = extra_from_foreman_num.toFixed(2)
+                get_result_accountin.children[4].innerHTML = extra_from_director_num.toFixed(2)
+
+
+                get_result_accountin.children[5].innerHTML = prepayment_num.toFixed(2)
+
+                get_result_accountin.children[6].innerHTML = avans_num.toFixed(2)
+                get_result_accountin.children[7].innerHTML = cart_num.toFixed(2)
+                get_result_accountin.children[8].innerHTML = kitchen_num.toFixed(2)
+                get_result_accountin.children[9].innerHTML = other_num.toFixed(2)
+                get_result_accountin.children[10].innerHTML = fines_num.toFixed(2)
+                get_result_accountin.children[11].innerHTML = last_one.toFixed(2)
+            }
+
+            tr_one = document.getElementsByClassName('tr_one')
+            for (var i = 1; i < tr_one.length; i++) {
+                tr_one[i].insertAdjacentHTML('beforebegin',
+                    '<tr class="result_accounting all_tr" id="result">' +
+                    '<td style="text-align: center; " colspan="3" >Итого:</td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td colspan="2"></td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td style="text-align: center;">0.00</td>' +
+                    '<td colspan="2"></td>' +
+                    '</tr>'
+                )
+            }
+            tr_two = document.querySelector('#result_accounting')
+            tr_two.insertAdjacentHTML('beforebegin',
+                '<tr class="result_accounting all_tr">' +
+                '<td style="text-align: center; " colspan="3" >Итого:</td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td colspan="2"></td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td style="text-align: center;">0.00</td>' +
+                '<td colspan="2"></td>' +
+                '</tr>'
+            )
+
+            var salary_num_ed = 0
+            var extra_from_foreman_num_ed = 0
+            var extra_from_director_num_ed = 0
+            var prepayment_num_ed = Number()
+            var cart_num_ed = 0
+            var kitchen_num_ed = 0
+            var other_num_ed = 0
+            var fines_num_ed = 0
+            var avans_num_ed = 0
+            var last_one_ed = 0
+
+            all_selectors = document.getElementsByClassName('selector');
+            for (var i = 0; i < all_selectors.length; i++) {
+                analysis_salary(all_selectors[i]);
+            }
+
+            function* analysis_salary_ed() {
+                all_tr = document.getElementsByTagName('tr')
+                for (var i = 2; i < all_tr.length - 1; i++) {
+                    if (all_tr[i].children.length > 13) {
+                        salary_ed = Number(all_tr[i].children[3].children[0].children[0].value);
+                        coefficient_ed = Number(all_tr[i].children[4].children[0].children[0].value);
+                        sumclocks_ed = Number(all_tr[i].children[5].children[0].children[0].value);
+                        extra_from_foreman_ed = Number(all_tr[i].children[6].children[0].children[0].value);
+                        extra_from_director_ed = Number(all_tr[i].children[7].children[0].children[0].value);
+                        prepayment_ed = Number(all_tr[i].children[8].children[0].children[0].value);
+                        cart_ed = Number(all_tr[i].children[10].children[0].children[0].value);
+                        kitchen_ed = Number(all_tr[i].children[11].children[0].children[0].value);
+                        other_ed = Number(all_tr[i].children[12].children[0].children[0].value);
+                        fines_ed = Number(all_tr[i].children[13].children[0].children[0].value);
+                        avans_ed = Number(all_tr[i].children[9].children[0].children[0].value);
+
+                        all_tr[i].children[8].children[0].children[0].value =
+                            Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(2);
+                        all_tr[i].children[14].children[0].children[0].value =
+                            Number(all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed)).toFixed(2);
+
+                        sss_ed = Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(2)
+                        ssr_ed = Number(sss_ed)
+                        ll_ed = Number(all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed)).toFixed(2)
+                        llInt_ed = Number(ll_ed)
+
+                        salary_num_ed = salary_num_ed + salary_ed
+                        extra_from_foreman_num_ed = extra_from_foreman_num_ed + extra_from_foreman_ed
+                        extra_from_director_num_ed = extra_from_director_num_ed + extra_from_director_ed
+                        prepayment_num_ed = prepayment_num_ed + ssr_ed
+                        cart_num_ed = cart_num_ed + cart_ed
+                        kitchen_num_ed = kitchen_num_ed + kitchen_ed
+                        other_num_ed = other_num_ed + other_ed
+                        fines_num_ed = fines_num_ed + fines_ed
+                        avans_num_ed = avans_num_ed + avans_ed
+                        last_one_ed = last_one_ed + llInt_ed
+
+
+                    } else if (all_tr[i].children.length == 13) {
+                        yield salary_num_ed
+                        yield extra_from_foreman_num_ed
+                        yield extra_from_director_num_ed
+                        yield prepayment_num_ed
+                        yield avans_num_ed
+                        yield last_one_ed
+                        last_one_ed = 0
+                        prepayment_num_ed = 0
+                        extra_from_director_num_ed = 0
+                        extra_from_foreman_num_ed = 0
+                        avans_num_ed = 0
+                        salary_num_ed = 0
+                    }
+                }
+            }
+
+            const a = analysis_salary_ed()
+
+            get_result_accountin_ed = document.getElementsByClassName('result_accounting');
+            for (let i = 0; i < get_result_accountin_ed.length; i++) {
+                get_result_accountin_ed[i].children[1].innerHTML = a.next().value.toFixed(2)
+                get_result_accountin_ed[i].children[3].innerHTML = a.next().value.toFixed(2)
+                get_result_accountin_ed[i].children[4].innerHTML = a.next().value.toFixed(2)
+
+                get_result_accountin_ed[i].children[5].innerHTML = a.next().value.toFixed(2)
+
+                get_result_accountin_ed[i].children[6].innerHTML = a.next().value.toFixed(2)
+                get_result_accountin_ed[i].children[7].innerHTML = cart_num_ed.toFixed(2)
+                get_result_accountin_ed[i].children[8].innerHTML = kitchen_num_ed.toFixed(2)
+                get_result_accountin_ed[i].children[9].innerHTML = other_num_ed.toFixed(2)
+                get_result_accountin_ed[i].children[10].innerHTML = fines_num_ed.toFixed(2)
+                get_result_accountin_ed[i].children[11].innerHTML = a.next().value.toFixed(2)
+            }
+
+            $('input.full_time').keyup(function (event) {
+                if (event.keyCode > 47 && event.keyCode < 58 || event.keyCode > 95 && event.keyCode < 106 ||
+                    event.keyCode === 13 || event.keyCode === 8) {
+
+                    const requestOptions = {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            value: this.value,
+                            id: this.getAttribute('name')
+                        }),
+                    };
+                    fetch('/salary/change-coefficient/', requestOptions);
+                    window.location.href = '/salary/payroll/' + '{{payrolls.first.time_sheet.dataSheet|date:"Y-m-d"}}';
+                }
+            });
+
+            $('input.form-control').keyup(function (event) {
+                // if(event.keyCode > 47 && event.keyCode <58 || event.keyCode > 95 && event.keyCode <106 ||
+                //     event.keyCode === 13 || event.keyCode === 8){
+                parent = this.parentElement.parentNode.parentNode;
+                console.log(this.value);
+                console.log(this.getAttribute('name'));
+                console.log(this.getAttribute('worker'));
+                console.log(this.getAttribute('time_sh'));
+                console.log(this.getAttribute('pay_roll'));
+                analysis_salary(parent);
+                analysis_salary_ed(parent);
+
+                const requestOptions = {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        name_field: this.getAttribute('name'),
+                        value: this.value,
+                        worker: this.getAttribute('worker'),
+                        time_sheet_id: this.getAttribute('time_sh')
+                    }),
+                };
+                if (this.getAttribute('pay_roll') !== 'close') {
+                    fetch('/salary/change-data/', requestOptions)
+                } else {
+                    alert('Ошибка! Расчетный лист принят бухгалтером!');
+                }
+                // }
+
+            });
+
+
+        });
+
+        function choose_timesheet() {
+            date_times = document.getElementById('select_year').value + '-' + document.getElementById('select_month').value + '-' + '01';
+            window.open('/salary/payroll/' + date_times);
+        }
+
+        $('.select_position').change(function (e) {
+            worker = this.getAttribute('worker');
+            department = this.getAttribute('department');
+            position = this.value;
+            const requestOptions = {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    'worker_id': worker,
+                    'department': department,
+                    'position_id': position
+                }),
+            };
+            fetch('/salary/change-position/', requestOptions);
+
+        })
+
+
+        function get_file() {
+            let table = document.querySelectorAll('.table-sm tbody .selector');
+
+            const all_data = new Map();
+            all_data.set('ФИО', []);
+            all_data.set('Аванс', []);
+            all_data.set('Зарплата', []);
+            all_data.set('Выдача', []);
+            all_data.set('Сорт', []);
+
+            for (var i = 0; i < table.length; i++) {
+
+                if (table[i].children[1] && table[i].children[1].innerHTML !== 'Итого:') {
+
+                    all_data.get('ФИО').push(table[i].children[1].children[0].children[0].value)
+                    all_data.get('Аванс').push(table[i].children[9].children[0].children[0].value)
+                    all_data.get('Зарплата').push(table[i].children[8].children[0].children[0].value)
+                    all_data.get('Выдача').push(table[i].children[14].children[0].children[0].value)
+                    all_data.get('Сорт').push(table[i].children[15].children[0].children[0].value)
+
+                }
+            }
+
+            const requestOptions = {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    'FIO': all_data.get('ФИО'),
+                    'AVANS': all_data.get('Аванс'),
+                    'ZP': all_data.get('Зарплата'),
+                    'Salary': all_data.get('Выдача'),
+                    'Sort': all_data.get('Сорт')
+
+                }),
+            };
+            fetch('/salary/get_file/', requestOptions)
+                .then(() => {
+                    window.open('/salary/download_file/');
+                })
+
+            console.log(all_data);
+        }
+
+    </script>
+{% endblock %}

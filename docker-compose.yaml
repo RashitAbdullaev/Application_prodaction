@@ -1,0 +1,32 @@
+version: "3"
+#python manage.py shell -c 'from django.contrib.auth.models import User; User.objects.create_superuser("'"roma"'","'"test@"'","'"roma"'"); exit();' &&
+#python manage.py makemigrations &&
+#python manage.py migrate &&
+services:
+  app:
+    build: ./applications/
+    command: >
+      sh -c  "
+              python manage.py makemigrations &&
+              python manage.py migrate &&
+              python manage.py runserver 0.0.0.0:80"
+    ports:
+      - 80:80
+    volumes:
+      - ./:/usr/src/app/
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+  db:
+    image: postgres:12.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=postgres
+volumes:
+  postgres_data:

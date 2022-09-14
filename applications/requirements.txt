@@ -1,0 +1,8 @@
+Django
+psycopg2-binary
+django-bootstrap4
+Jinja2
+django-jinja
+djangorestframework
+numpy==1.21.2
+xlsxwriter
