@@ -48,12 +48,12 @@ def add_worker(dictionary, worker):
         norm_clocks = int(len(calen.keys())) / 3 * 24
     else:
         norm_clocks = int(busy_days()) * 8
-    qwe = '#505d50'
+    qwe = 'white'
     dates[str(worker.pk)] = [{'position': worker.position.pk}, {}, {}, [{'coefficient': 1.0}, {'extra_from_foreman': 0.00},
                                                                     {'extra_from_director': 0.00}, {'prepayment': 0.00},
                                                                     {'card': 0.00}, {}, {'breakfast': 0.00},
                                                                     {'other': 0.00}, {'norm_clocks': norm_clocks},
-                                                                    {'salary': 0.00}, {'sort': ''},{'qwe': qwe}
+                                                                    {'salary': 0.00}, {'sort': ''}, {'qwe': qwe}
                                                                     ]]
 
     summ = 0

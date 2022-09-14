@@ -682,8 +682,8 @@
             function show_hide() {
                 el = document.getElementById('list-group');
                 el.style.display = 'block';
-                el.style.top = event.clientY + 'px';
-                el.style.left = event.clientX + 'px';
+                el.style.top = event.pageY + 'px';
+                el.style.left = event.pageX + 'px';
             }
 
             function set_attr(timesheet, worker) {
