@@ -4,7 +4,9 @@
 {% block title %} Расчетный лист {% endblock %}
 
 {% block content %}
-    <div class="list-group_ed rounded-0 p-0" id="list-group">
+
+    <div class="list-group_ed rounded-0 p-0" id="list-group" {% if group.name == 'Начальники производства' %}
+         style="display: none" {% endif %}>
         <button type="button" class="list-group-item list-post list-group-item-action p-1" value="absenteeism">
             Красный
         </button>
@@ -27,7 +29,7 @@
     </p>
     <div class="col-10">
         <div style="justify-content: center;
-    display: flex;">
+    display: flex; margin-bottom: 15px">
             <select style="" id="select_year" class="select-group"
                     onChange="choose_timesheet()">
 
@@ -72,6 +74,7 @@
                 padding: 5px;
                 border: 1px solid #1266f1;
                 margin-right: 2px;
+
             }
 
             .list-group_ed {
@@ -88,14 +91,19 @@
                 font-size: 12px;
             }
         </style>
-        <div align="center" style="margin-top: 15px" class="button_color">
+
+        <div align="center"  {% if group.name == 'Начальники производства' %}
+             style="display: none !important;"{% endif %}class="button_color">
             <button type="button" class="btn btn-primary btn-sm" data-f="#1700ffb3">Синий</button>
             <button type="button" class="btn btn-warning btn-sm" data-f="#ffff00b3">Желтый</button>
             <button type="button" class="btn btn-danger btn-sm" data-f="#ff0004b3">Красный</button>
-            <button type="button" class="btn btn-danger btn-sm" data-f="#800080" style="background:#800080">Фиолетовый</button>
+            <button type="button" class="btn btn-danger btn-sm" data-f="#800080" style="background:#800080">Фиолетовый
+            </button>
             <button type="button" class="btn btn-light btn-sm" data-f="#fff">Белый</button>
         </div>
-        <table class="table table-sm table-hover" style="width: 100% !important;">
+
+
+        <table class="table table-sm table-hover" style="width: 100% !important; margin-top: 15px">
             <thead>
             <tr class="text-center">
                 <th></th>
@@ -135,7 +143,9 @@
                     </tr>
                     {% for data in dates %}
                         <tr class="selector all_tr {% get_method dates data 'qwe' %}"
+                                {% if group.name != 'Начальники производства' %}
                             style="background:{% get_method dates data 'qwe' %}"
+                                {% endif %}
                             id="{% get_method dates data 'Worker' %}" time_sh="{{ payroll.time_sheet.pk }}">
                             <td class="{% get_method dates data 'norm_clocks' %}">{{ forloop.counter }}</td>
                             <td>
@@ -491,6 +501,8 @@
     <script type="text/javascript">
 
         $(document).ready(function () {
+
+
             const filter_box = document.querySelectorAll(".selector")
             document.querySelector('.button_color').addEventListener('click', event => {
                 tabel = document.getElementsByClassName('tabel')
@@ -523,6 +535,7 @@
                 last_one = 0
 
                 function analysis_salary(parent) {
+
                     salary = Number(parent.children[3].children[0].children[0].value);
                     coefficient = Number(parent.children[4].children[0].children[0].value);
                     sumclocks = Number(parent.children[5].children[0].children[0].value);
@@ -544,15 +557,23 @@
                         }
 
                     }
-                    parent.children[8].children[0].children[0].value =
-                        Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(2);
+
+                    if (((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(0) % 10 != 0) {
+                        parent.children[8].children[0].children[0].value =
+                            Number(Math.ceil((((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director) + 1) / 10) * 10);
+                        sss = Number(Math.ceil((((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director) + 1) / 10) * 10)
+                    } else {
+                        parent.children[8].children[0].children[0].value =
+                            Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(0);
+                        sss = Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(0)
+                    }
+
                     parent.children[14].children[0].children[0].value =
-                        Number(parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines)).toFixed(2);
+                        Number(Math.round(((parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines))) / 10) * 10);
 
 
-                    sss = Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(2)
                     ssr = Number(sss)
-                    ll = Number(parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines)).toFixed(2)
+                    ll = Number(Math.round(((parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines))) / 10) * 10);
                     llInt = Number(ll)
                     salary_num = salary_num + salary
 
@@ -617,14 +638,25 @@
                             fines_ed = Number(all_tr[i].children[13].children[0].children[0].value);
                             avans_ed = Number(all_tr[i].children[9].children[0].children[0].value);
 
-                            all_tr[i].children[8].children[0].children[0].value =
-                                Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(2);
-                            all_tr[i].children[14].children[0].children[0].value =
-                                Number(all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed)).toFixed(2);
 
-                            sss_ed = Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(2)
+                            if (all_tr[i].children[2].children[0].children[0].value == 'Охранник') {
+                                full_time = Number(document.getElementById('full_time_guard').value);
+                            } else {
+                                full_time = Number(document.getElementById('full_time_worker').value);
+                                if (sumclocks_ed > full_time) {
+                                    sumclocks_ed = full_time
+                                }
+
+                            }
+
+                            if (((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(0) % 10 != 0) {
+                                sss_ed = Number(Math.ceil((((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed) + 1) / 10) * 10)
+                            } else {
+                                sss_ed = Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(0)
+                            }
+
                             ssr_ed = Number(sss_ed)
-                            ll_ed = Number(all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed)).toFixed(2)
+                            ll_ed = Number(Math.round(((all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed))) / 10) * 10)
                             llInt_ed = Number(ll_ed)
 
                             salary_num_ed = salary_num_ed + salary_ed
@@ -645,6 +677,10 @@
                             yield extra_from_director_num_ed
                             yield prepayment_num_ed
                             yield avans_num_ed
+                            yield cart_num_ed
+                            yield kitchen_num_ed
+                            yield other_num_ed
+                            yield fines_num_ed
                             yield last_one_ed
                             last_one_ed = 0
                             prepayment_num_ed = 0
@@ -652,6 +688,10 @@
                             extra_from_foreman_num_ed = 0
                             avans_num_ed = 0
                             salary_num_ed = 0
+                            kitchen_num_ed = 0
+                            cart_num_ed = 0
+                            other_num_ed = 0
+                            fines_num_ed = 0
                         }
                     }
                 }
@@ -659,18 +699,18 @@
                 const click = analysis_salary_ed_click()
                 get_result_accountin_ed_click = document.getElementsByClassName('result_accounting');
                 for (let i = 0; i < get_result_accountin_ed.length; i++) {
-                    get_result_accountin_ed_click[i].children[1].innerHTML = click.next().value.toFixed(2)
-                    get_result_accountin_ed_click[i].children[3].innerHTML = click.next().value.toFixed(2)
-                    get_result_accountin_ed_click[i].children[4].innerHTML = click.next().value.toFixed(2)
+                    get_result_accountin_ed_click[i].children[1].innerHTML = click.next().value.toFixed(0)
+                    get_result_accountin_ed_click[i].children[3].innerHTML = click.next().value.toFixed(0)
+                    get_result_accountin_ed_click[i].children[4].innerHTML = click.next().value.toFixed(0)
 
-                    get_result_accountin_ed_click[i].children[5].innerHTML = click.next().value.toFixed(2)
+                    get_result_accountin_ed_click[i].children[5].innerHTML = click.next().value.toFixed(0)
 
-                    get_result_accountin_ed_click[i].children[6].innerHTML = click.next().value.toFixed(2)
-                    get_result_accountin_ed_click[i].children[7].innerHTML = cart_num_ed.toFixed(2)
-                    get_result_accountin_ed_click[i].children[8].innerHTML = kitchen_num_ed.toFixed(2)
-                    get_result_accountin_ed_click[i].children[9].innerHTML = other_num_ed.toFixed(2)
-                    get_result_accountin_ed_click[i].children[10].innerHTML = fines_num_ed.toFixed(2)
-                    get_result_accountin_ed_click[i].children[11].innerHTML = click.next().value.toFixed(2)
+                    get_result_accountin_ed_click[i].children[6].innerHTML = click.next().value.toFixed(0)
+                    get_result_accountin_ed_click[i].children[7].innerHTML = click.next().value.toFixed(0)
+                    get_result_accountin_ed_click[i].children[8].innerHTML = click.next().value.toFixed(0)
+                    get_result_accountin_ed_click[i].children[9].innerHTML = click.next().value.toFixed(0)
+                    get_result_accountin_ed_click[i].children[10].innerHTML = click.next().value.toFixed(0)
+                    get_result_accountin_ed_click[i].children[11].innerHTML = click.next().value.toFixed(0)
                 }
             });
 
@@ -741,15 +781,22 @@
                     }
 
                 }
-                parent.children[8].children[0].children[0].value =
-                    Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(2);
+                if (((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(0) % 10 != 0) {
+                    parent.children[8].children[0].children[0].value =
+                        Number(Math.ceil((((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director) + 1) / 10) * 10);
+                    sss = Number(Math.ceil((((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director) + 1) / 10) * 10)
+                } else {
+                    parent.children[8].children[0].children[0].value =
+                        Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(0);
+                    sss = Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(0)
+                }
+
                 parent.children[14].children[0].children[0].value =
-                    Number(parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines)).toFixed(2);
+                    Number(Math.round(((parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines))) / 10) * 10);
 
 
-                sss = Number((salary / full_time * sumclocks) * coefficient + extra_from_foreman + extra_from_director).toFixed(2)
                 ssr = Number(sss)
-                ll = Number(parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines)).toFixed(2)
+                ll = Number(Math.round(((parent.children[8].children[0].children[0].value - (avans + cart + kitchen + other + fines))) / 10) * 10);
                 llInt = Number(ll)
                 salary_num = salary_num + salary
 
@@ -820,6 +867,13 @@
                 '</tr>'
             )
 
+
+            all_selectors = document.getElementsByClassName('selector');
+            for (var i = 0; i < all_selectors.length; i++) {
+                analysis_salary(all_selectors[i]);
+            }
+
+
             var salary_num_ed = 0
             var extra_from_foreman_num_ed = 0
             var extra_from_director_num_ed = 0
@@ -831,10 +885,6 @@
             var avans_num_ed = 0
             var last_one_ed = 0
 
-            all_selectors = document.getElementsByClassName('selector');
-            for (var i = 0; i < all_selectors.length; i++) {
-                analysis_salary(all_selectors[i]);
-            }
 
             function* analysis_salary_ed() {
                 all_tr = document.getElementsByTagName('tr')
@@ -852,14 +902,24 @@
                         fines_ed = Number(all_tr[i].children[13].children[0].children[0].value);
                         avans_ed = Number(all_tr[i].children[9].children[0].children[0].value);
 
-                        all_tr[i].children[8].children[0].children[0].value =
-                            Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(2);
-                        all_tr[i].children[14].children[0].children[0].value =
-                            Number(all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed)).toFixed(2);
+                        if (all_tr[i].children[2].children[0].children[0].value == 'Охранник') {
+                            full_time = Number(document.getElementById('full_time_guard').value);
+                        } else {
+                            full_time = Number(document.getElementById('full_time_worker').value);
+                            if (sumclocks_ed > full_time) {
+                                sumclocks_ed = full_time
+                            }
 
-                        sss_ed = Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(2)
+                        }
+
+                        if (((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(0) % 10 != 0) {
+                            sss_ed = Number(Math.ceil((((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed) + 1) / 10) * 10)
+                        } else {
+                            sss_ed = Number((salary_ed / full_time * sumclocks_ed) * coefficient_ed + extra_from_foreman_ed + extra_from_director_ed).toFixed(0)
+                        }
+
                         ssr_ed = Number(sss_ed)
-                        ll_ed = Number(all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed)).toFixed(2)
+                        ll_ed = Number(Math.round(((all_tr[i].children[8].children[0].children[0].value - (avans_ed + cart_ed + kitchen_ed + other_ed + fines_ed))) / 10) * 10)
                         llInt_ed = Number(ll_ed)
 
                         salary_num_ed = salary_num_ed + salary_ed
@@ -880,6 +940,10 @@
                         yield extra_from_director_num_ed
                         yield prepayment_num_ed
                         yield avans_num_ed
+                        yield cart_num_ed
+                        yield kitchen_num_ed
+                        yield other_num_ed
+                        yield fines_num_ed
                         yield last_one_ed
                         last_one_ed = 0
                         prepayment_num_ed = 0
@@ -887,6 +951,10 @@
                         extra_from_foreman_num_ed = 0
                         avans_num_ed = 0
                         salary_num_ed = 0
+                        kitchen_num_ed = 0
+                        cart_num_ed = 0
+                        other_num_ed = 0
+                        fines_num_ed = 0
                     }
                 }
             }
@@ -895,18 +963,18 @@
 
             get_result_accountin_ed = document.getElementsByClassName('result_accounting');
             for (let i = 0; i < get_result_accountin_ed.length; i++) {
-                get_result_accountin_ed[i].children[1].innerHTML = a.next().value.toFixed(2)
-                get_result_accountin_ed[i].children[3].innerHTML = a.next().value.toFixed(2)
-                get_result_accountin_ed[i].children[4].innerHTML = a.next().value.toFixed(2)
+                get_result_accountin_ed[i].children[1].innerHTML = a.next().value.toFixed(0)
+                get_result_accountin_ed[i].children[3].innerHTML = a.next().value.toFixed(0)
+                get_result_accountin_ed[i].children[4].innerHTML = a.next().value.toFixed(0)
 
-                get_result_accountin_ed[i].children[5].innerHTML = a.next().value.toFixed(2)
+                get_result_accountin_ed[i].children[5].innerHTML = a.next().value.toFixed(0)
 
-                get_result_accountin_ed[i].children[6].innerHTML = a.next().value.toFixed(2)
-                get_result_accountin_ed[i].children[7].innerHTML = cart_num_ed.toFixed(2)
-                get_result_accountin_ed[i].children[8].innerHTML = kitchen_num_ed.toFixed(2)
-                get_result_accountin_ed[i].children[9].innerHTML = other_num_ed.toFixed(2)
-                get_result_accountin_ed[i].children[10].innerHTML = fines_num_ed.toFixed(2)
-                get_result_accountin_ed[i].children[11].innerHTML = a.next().value.toFixed(2)
+                get_result_accountin_ed[i].children[6].innerHTML = a.next().value.toFixed(0)
+                get_result_accountin_ed[i].children[7].innerHTML = a.next().value.toFixed(0)
+                get_result_accountin_ed[i].children[8].innerHTML = a.next().value.toFixed(0)
+                get_result_accountin_ed[i].children[9].innerHTML = a.next().value.toFixed(0)
+                get_result_accountin_ed[i].children[10].innerHTML = a.next().value.toFixed(0)
+                get_result_accountin_ed[i].children[11].innerHTML = a.next().value.toFixed(0)
             }
 
             $('input.full_time').keyup(function (event) {
@@ -935,8 +1003,7 @@
                 console.log(this.getAttribute('worker'));
                 console.log(this.getAttribute('time_sh'));
                 console.log(this.getAttribute('pay_roll'));
-                analysis_salary(parent);
-                analysis_salary_ed(parent);
+
 
                 const requestOptions = {
                     method: "POST",
