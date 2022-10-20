@@ -1,0 +1,61 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block plan_view %}
+<h4 style="color: black" align="center" class="update_header" id="{{url}}">Редактирование Плана</h4>
+<hr style="color: black">
+<form action="{% url 'plan:update_product' url%}" method="post">
+    {% csrf_token %}
+    {{form}}
+
+    <button type="submit" class="btn btn-success" id="btn_add" style="width: 100%">Сохранить</button>
+</form>
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+        $('#id_guild').prop('disabled',true)
+        $('#btn_add').click(function (){
+            $('#id_guild').prop('disabled',false)
+        })
+        const requestURL = "update_json"
+        const headers = {
+            'Content-type': 'application/json',
+        }
+
+        const product = {
+            type_id: document.querySelector('.update_header').id
+        }
+
+        function sentRequest(method, url, product) {
+            return fetch(url, {
+                method: method,
+                body: JSON.stringify(product),
+                headers: headers,
+            })
+                .then(response => {
+                    return response.json()
+                })
+        }
+
+        sentRequest('POST', requestURL, product)
+
+            .then(data => {
+                document.getElementById('id_plan_note').value = data.plan_note
+                document.getElementById('id_date_merchant').value = data.date_merchant
+                document.getElementById('id_date_guild').value = data.date_guild
+                document.getElementById('id_foreman').value = data.foreman
+                document.getElementById('id_guild').value = data.guild
+
+            })
+    })
+
+</script>
+
+{% endblock javascript %}

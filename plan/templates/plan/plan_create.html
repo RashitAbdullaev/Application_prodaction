@@ -1,0 +1,132 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block plan_view %}
+<h5 style="color: black" align="center">Добавление Плана</h5>
+<hr style="color: black">
+<form action="{% url 'plan:add'%}" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <label>Модель</label>
+    <div class="d-flex">
+        <select id="id_model" name="model" class="form-control">
+            <option>
+                Выбрать модель
+            </option>
+        </select>
+        <button type="button" class="btn btn-outline-success open_model" style="margin-left: 5px" id="">+</button>
+    </div>
+
+    <label> Списать на : </label>
+    <div>
+        <select class="form-control" id="type_product">
+            {% for i in type_all%}
+            <option value="{{i.pk}}">
+                {{i.product_type}}
+            </option>
+            {% endfor %}
+        </select>
+        <br>
+        <select id="id_product" name="product" class="form-control">
+            <option selected>
+                Выбрать продукт
+            </option>
+        </select>
+    </div>
+
+
+    <button type="submit" class="btn btn-success" style="width: 100%;margin-top:10px ">Сохранить</button>
+</form>
+{% endblock%}
+{% block javascript %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+        $('#id_product_type').change(function () {
+
+            const requestURL = "add_json"
+            const headers = {
+                'Content-type': 'application/json',
+            }
+
+            const product = {
+                model: [],
+                type_name: document.querySelector('#id_product_type option:checked').text,
+                type_id: document.querySelector('#id_product_type option:checked').value
+            }
+
+            function sentRequest(method, url, product) {
+                return fetch(url, {
+                    method: method,
+                    body: JSON.stringify(product),
+                    headers: headers,
+                })
+                    .then(response => {
+                        return response.json()
+                    })
+            }
+
+            sentRequest('POST', requestURL, product)
+
+                .then(data => {
+                    console.log(data)
+                    document.getElementById('id_product_number').value = data.type_name
+                    document.querySelector('.open_model').id = data.type_id
+                    for (let i in data.model) {
+                        let newOption = new Option(data.model[i], data.model_pk[i]);
+                        document.getElementById('id_model').append(newOption)
+                    }
+
+
+                })
+        })
+        $('#type_product').change(function () {
+
+            const requestURL = "product_expense"
+            const headers = {
+                'Content-type': 'application/json',
+            }
+            const type_product = {
+                type_id: document.querySelector('#type_product option:checked').value
+            }
+
+            function sentRequest(method, url, type_product) {
+                return fetch(url, {
+                    method: method,
+                    body: JSON.stringify(type_product),
+                    headers: headers,
+                })
+                    .then(response => {
+                        return response.json()
+                    })
+            }
+
+            sentRequest('POST', requestURL, type_product)
+
+                .then(data => {
+                    console.log(data)
+                    for (let i in data.product) {
+                        let newOption = new Option(data.product[i], data.product_pk[i]);
+                        document.getElementById('id_product').append(newOption)
+                    }
+                })
+        })
+
+        $('.open_model').click(function () {
+            $.ajax({
+                url: 'create_model/' + this.id,
+                type: 'get',
+                success: function (response) {
+                    $('.modal-body').html(response)
+                }
+            })
+        })
+
+    })
+
+</script>
+
+{% endblock javascript %}

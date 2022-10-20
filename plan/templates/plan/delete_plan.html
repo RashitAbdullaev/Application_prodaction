@@ -1,0 +1,19 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+
+{% block Request %}
+<h5 style="color: black">Вы уверены что хотите удалить</h5>
+<hr style="color: black">
+<div class="d-flex">
+    <form action="{% url 'plan:delete_plan' url %}" method="post" id="delete_request">
+    {% csrf_token %}
+    <button type="submit" id="delete-btn" class="btn btn-outline-danger btn-sm">Да</button>
+</form>
+
+<button class="btn btn-outline-success btn-sm" data-bs-dismiss="modal" style="margin-left: 15px">Нет</button>
+</div>
+
+
+{% endblock %}
+

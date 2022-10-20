@@ -1,0 +1,153 @@
+{% extends 'plan/layout/basic.html' %}
+{% load static %}
+
+{% block plan_view %}
+<h3 align="center">План</h3>
+{% if messages%}
+<div class="alert alert-success">
+    {% for m in messages%}
+    {{m}}
+    {% endfor%}
+</div>
+{% endif%}
+
+<div class="d-flex">
+    <table class="table table-striped">
+        <thead>
+
+        <tr>
+            <th scope="col">Наименование оборудования</th>
+            <th scope="col">Модель</th>
+            <th scope="col">Номер</th>
+            <th scope="col">Примечание</th>
+            <th scope="col">Заказчик</th>
+            <th scope="col">Коммерсант</th>
+            <th scope="col">Дата коммерасанта</th>
+            <th scope="col">Дата бригадира</th>
+            <th scope="col">Бригадир</th>
+        </tr>
+        </thead>
+        <tbody>
+
+
+        {% for k in plan %}
+
+        <tr {%if k.product.id|slugify == request.GET.id %} style="background: #98FB98" {%endif%} {%if k.act.pk > 0 %}
+            style="display:none" {%endif%}>
+            <th>{{k.product.product_name }}</th>
+            <td>{{k.product.model|default_if_none:""}}</td>
+            <td>{{k.product.product_number}}</td>
+            <td>{{k.plan_note}}</td>
+            <td></td>
+            <td></td>
+            <td>{{k.date_merchant}}</td>
+            <td>{{k.date_guild}}</td>
+            <td>{{k.foreman}}</td>
+            <td>
+                <a class="update_plan" id="{{k.product.pk}}" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    <img src="https://img.icons8.com/nolan/64/edit--v1.png" style="width: 15%"/>
+                </a>
+                <a id="delete_request" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                   onclick="delete_form('{{k.product.pk}}')">
+                    <img src="https://img.icons8.com/color/48/000000/delete-sign--v1.png" style="width: 15%"/>
+                </a>
+            </td>
+
+        </tr>
+        {% endfor%}
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock%}
+
+{% block javascript %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+
+    //удаление плана
+    function delete_form(pk) {
+        $.ajax({
+            url: 'delete_plan/' + pk,
+            type: 'get',
+            success: function (response) {
+                $('.modal-body').html(response)
+            }
+        })
+    }
+
+    //добавление плана
+    $(document).ready(function () {
+        $('.add_plan').click(function () {
+            $.ajax({
+                url: 'add',
+                type: 'get',
+                success: function (response) {
+                    $('.modal-body').html(response)
+                }
+            })
+
+        })
+
+        //обновление плана
+        $('.update_plan').click(function () {
+            $.ajax({
+                url: 'update_plan/' + this.id,
+                type: 'get',
+                success: function (response) {
+                    $('.modal-body').html(response)
+                }
+            })
+        })
+
+        //Сортировка по дате
+        $('.date_plan').change(function () {
+            $.ajax({
+                url: 'plan/' + document.getElementById('example').value,
+                type: 'get',
+                success: function (response) {
+                    $('.plan_view').html(response)
+                }
+            })
+        })
+
+        // весь план
+        $('.all_plan').click(function () {
+            $.ajax({
+                url: 'all_plan',
+                type: 'get',
+                success: function (response) {
+                    $('.plan_view').html(response)
+                }
+            })
+        })
+        $('.akt').click(function () {
+            $.ajax({
+                url: 'act',
+                type: 'get',
+                success: function (response) {
+                    $('.plan_view').html(response)
+                }
+            })
+        })
+
+    })
+
+
+</script>
+
+{% endblock javascript %}

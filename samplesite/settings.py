@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'applications.apps.ApplicationsConfig',
     'salary.apps.SalaryConfig',
+    'plan.apps.PlanConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrap4',
+    'crispy_forms',
 
 ]
 

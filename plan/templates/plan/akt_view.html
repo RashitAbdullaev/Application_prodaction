@@ -1,0 +1,87 @@
+{% load static %}
+
+{% block plan_view %}
+<h3 align="center">Акт</h3>
+{% if messages%}
+<div class="alert alert-success">
+    {% for m in messages%}
+    {{m}}
+    {% endfor%}
+</div>
+{% endif%}
+<div class="d-flex">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">Наименование оборудования</th>
+            <th scope="col">Модель</th>
+            <th scope="col">Номер</th>
+            <th scope="col">Примечание</th>
+            <th scope="col">Заказчик</th>
+            <th scope="col">Коммерсант</th>
+            <th scope="col">Дата коммерасанта</th>
+            <th scope="col">Дата бригадира</th>
+            <th scope="col">Бригадир</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for k in plan_all %}
+        <tr {% if k.act.pk > 0 %} style="display:none" {% endif %} class="act_table" id="{{k.product.id}}"
+            data-bs-toggle="modal" data-bs-target="#exampleModal">
+            <th>{{k.product.product_name}}</th>
+            <td>{{k.product.model|default_if_none:""}}</td>
+            <td>{{k.product.product_number}}</td>
+            <td>{{k.plan_note}}</td>
+            <td></td>
+            <td></td>
+            <td>{{k.date_merchant}}</td>
+            <td>{{k.date_guild}}</td>
+            <td>{{k.foreman}}</td>
+        </tr>
+
+        {% endfor%}
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        </tbody>
+    </table>
+    <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock%}
+{% block javascript %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.act_table').click(function () {
+            $.ajax({
+                url: 'act_create/' + this.id,
+                type: 'get',
+                success: function (response) {
+                    $('.modal-body').html(response)
+                }
+            })
+        })
+    })
+</script>
+
+{% endblock javascript %}

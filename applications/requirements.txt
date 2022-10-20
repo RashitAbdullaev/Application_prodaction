@@ -6,3 +6,4 @@ django-jinja
 djangorestframework
 numpy==1.21.2
 xlsxwriter
+django-crispy-forms

@@ -1,0 +1,29 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block plan_view %}
+    <table class="table table-striped">
+ <thead>
+        <tr>
+            <th scope="col">Номер</th>
+            <th scope="col">Дата сдачи</th>
+            <th scope="col">Примечание</th>
+            <th scope="col">ОТК</th>
+            <th scope="col">Продукт</th>
+        </tr>
+        </thead>
+
+    <tbody>
+        {% for k in act_data %}
+
+        <tr>
+            <th>{{k.pk }}</th>
+            <td>{{k.act_date}}</td>
+            <td>{{k.act_note}}</td>
+            <td>{{k.forman}}</td>
+            <td>{{k.product}}</td>
+        </tr>
+        {% endfor%}
+     </tbody>
+        </table>
+{% endblock %}

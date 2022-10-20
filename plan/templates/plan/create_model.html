@@ -1,0 +1,12 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block Request %}
+<h5 style="color: black" align="center">Добавление Модели</h5>
+<hr style="color: black">
+<form action="{% url 'plan:model_create' url_model %}" method="post" id="model_view">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success " style="width: 100%;margin-top:10px ">Сохранить</button>
+</form>
+{% endblock%}
